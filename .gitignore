@@ -1,0 +1,31 @@
+# Environment variables and secrets
+.env
+config.local.php
+*.key
+*.pem
+
+# API Keys and sensitive files
+**/api_keys.php
+**/secrets.php
+**/credentials.php
+
+# Logs
+*.log
+payment_errors.log
+
+# Cache
+**/cache/**
+**/tmp/**
+
+# Uploads (if they contain sensitive data)
+uploads/**
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
