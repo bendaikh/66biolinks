@@ -1697,6 +1697,9 @@ class Pay extends Controller {
     }
 
     private function handle_paddle_checkout() {
+        /* Log all GET parameters for debugging */
+        $this->log_payment_error('PADDLE_DEBUG', 'GET parameters: ' . json_encode($_GET));
+        
         /* Check if this is a Paddle transaction checkout */
         if(isset($_GET['_ptxn']) && !empty($_GET['_ptxn'])) {
             $transaction_id = $_GET['_ptxn'];
