@@ -288,6 +288,9 @@ class Pay extends Controller {
 
         /* Include the detection of callbacks processing */
         $this->payment_return_process();
+        
+        /* Handle Paddle transaction checkout */
+        $this->handle_paddle_checkout();
 
         /* Set a custom title */
         Title::set(sprintf(l('pay.title'), $this->plan->translations->{\Altum\Language::$name}->name ?? $this->plan->name));
@@ -1618,7 +1621,8 @@ class Pay extends Controller {
                     );
 
                     /* Log the request details for debugging */
-                    $this->log_payment_error('PADDLE_REQUEST', 'Transaction Response: ' . json_encode($transaction_response->body));
+                    $this->log_payment_error('PADDLE_REQUEST', 'Transaction Response Code: ' . $transaction_response->code);
+                    $this->log_payment_error('PADDLE_REQUEST', 'Transaction Response Body: ' . json_encode($transaction_response->body));
 
                     /* Handle API failure */
                     if ($transaction_response->code >= 400 || !isset($transaction_response->body->data)) {
@@ -1690,6 +1694,21 @@ class Pay extends Controller {
         }
         
         return $response->body->data->id;
+    }
+
+    private function handle_paddle_checkout() {
+        /* Check if this is a Paddle transaction checkout */
+        if(isset($_GET['_ptxn']) && !empty($_GET['_ptxn'])) {
+            $transaction_id = $_GET['_ptxn'];
+            
+            /* Log the transaction ID for debugging */
+            $this->log_payment_error('PADDLE_CHECKOUT', 'Transaction ID: ' . $transaction_id);
+            
+            /* Redirect to Paddle's hosted checkout */
+            $paddle_checkout_url = 'https://checkout.paddle.com/transaction/' . $transaction_id;
+            header('Location: ' . $paddle_checkout_url);
+            die();
+        }
     }
 
     private function yookassa() {
