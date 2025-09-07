@@ -72,11 +72,21 @@ if (strpos($uri, '/install/') === 0) {
     }
 }
 
-// For all other requests, simulate the .htaccess rewrite rule
-// RewriteRule ^(.+)$ index.php?altum=$1 [QSA,L]
-$path = ltrim($uri, '/');
-if (!empty($path)) {
-    $_GET['altum'] = $path;
+// Check for Paddle checkout URLs with _ptxn parameter
+if (isset($_GET['_ptxn']) && !empty($_GET['_ptxn'])) {
+    // This is a Paddle checkout URL, preserve the _ptxn parameter
+    $path = ltrim($uri, '/');
+    if (!empty($path)) {
+        $_GET['altum'] = $path;
+    }
+    // Keep the _ptxn parameter in $_GET
+} else {
+    // For all other requests, simulate the .htaccess rewrite rule
+    // RewriteRule ^(.+)$ index.php?altum=$1 [QSA,L]
+    $path = ltrim($uri, '/');
+    if (!empty($path)) {
+        $_GET['altum'] = $path;
+    }
 }
 
 // Serve the main index.php
