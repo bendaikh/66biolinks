@@ -1,3 +1,8 @@
+<?php
+/* Load the application to access settings */
+require_once realpath(__DIR__) . '/app/init.php';
+$App = new Altum\App();
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
