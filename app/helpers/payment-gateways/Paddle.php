@@ -84,7 +84,10 @@ class Paddle {
             'customer_email' => $customer_email,
             'custom_data' => $custom_data,
             'collection_mode' => 'automatic',
-            'currency_code' => currency()
+            'currency_code' => currency(),
+            'checkout' => [
+                'url' => SITE_URL . 'paddle-checkout.php'
+            ]
         ];
 
         $response = \Unirest\Request::post(
