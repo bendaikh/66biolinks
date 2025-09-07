@@ -55,6 +55,18 @@ class WebhookPaddle extends Controller {
                 $this->handle_transaction_failed($webhook_data);
                 break;
                 
+            case 'transaction.created':
+                /* Transaction created - no action needed, wait for completion */
+                break;
+                
+            case 'product.created':
+                /* Product created - no action needed */
+                break;
+                
+            case 'price.created':
+                /* Price created - no action needed */
+                break;
+                
             default:
                 /* Log unhandled events for debugging */
                 error_log('Unhandled Paddle webhook event: ' . $event_type);

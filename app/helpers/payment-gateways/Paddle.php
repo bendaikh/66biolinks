@@ -84,7 +84,10 @@ class Paddle {
             'customer_email' => $customer_email,
             'custom_data' => $custom_data,
             'collection_mode' => 'automatic',
-            'currency_code' => currency()
+            'currency_code' => currency(),
+            'checkout' => [
+                'url' => SITE_URL . 'pay/' . $custom_data['plan_id'] . '?return_type=success&payment_processor=paddle'
+            ]
         ];
 
         $response = \Unirest\Request::post(
