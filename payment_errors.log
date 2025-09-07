@@ -1,0 +1,6 @@
+=== PAYMENT ERROR LOG ===
+This file will log actual payment errors for debugging purposes.
+Format: [DATE TIME] - PROCESSOR - ERROR DETAILS
+
+[2025-09-07 21:50:28] - PADDLE_REQUEST - Transaction Response: {"error":{"type":"request_error","code":"transaction_checkout_url_domain_is_not_approved","detail":"The value you passed for `checkout.url` does not contain a domain that has been approved by Paddle","documentation_url":"https:\/\/developer.paddle.com\/v1\/errors\/transactions\/transaction_checkout_url_domain_is_not_approved"},"meta":{"request_id":"934dd255-cfb6-452c-844f-0daf75ed148d"}}
+[2025-09-07 21:50:28] - PADDLE - Transaction failed: The value you passed for `checkout.url` does not contain a domain that has been approved by Paddle
