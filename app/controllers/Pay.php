@@ -1639,11 +1639,11 @@ class Pay extends Controller {
                         redirect('pay/' . $this->plan_id . '?' . $trial_skip_parameter . $discount_code_parameter);
                     }
 
-                    /* Store the checkout URL only if transaction was successful */
-                    $this->payment_extra_data = [
-                        'payment_processor' => 'paddle',
-                        'url' => $transaction_response->body->data->checkout->url
-                    ];
+                    /* Redirect directly to Paddle checkout */
+                    $checkout_url = $transaction_response->body->data->checkout->url;
+                    $this->log_payment_error('PADDLE_REDIRECT', 'Redirecting to: ' . $checkout_url);
+                    header('Location: ' . $checkout_url);
+                    die();
 
                 } catch (\Exception $exception) {
                     /* Log the actual error for debugging */
