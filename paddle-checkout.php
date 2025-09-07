@@ -4,9 +4,6 @@
  * This file handles Paddle checkout URLs with _ptxn parameter
  */
 
-// Include the main application
-require_once __DIR__ . '/app/init.php';
-
 // Check if _ptxn parameter is present
 if (isset($_GET['_ptxn']) && !empty($_GET['_ptxn'])) {
     $transaction_id = $_GET['_ptxn'];
@@ -21,7 +18,7 @@ if (isset($_GET['_ptxn']) && !empty($_GET['_ptxn'])) {
     die();
 } else {
     // No _ptxn parameter, redirect to home
-    header('Location: ' . SITE_URL);
+    header('Location: https://lbio.in/');
     die();
 }
 ?>
