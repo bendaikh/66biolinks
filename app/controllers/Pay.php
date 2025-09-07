@@ -1635,7 +1635,7 @@ class Pay extends Controller {
                         redirect('pay/' . $this->plan_id . '?' . $trial_skip_parameter . $discount_code_parameter);
                     }
 
-                    /* Store the checkout URL */
+                    /* Store the checkout URL only if transaction was successful */
                     $this->payment_extra_data = [
                         'payment_processor' => 'paddle',
                         'url' => $transaction_response->body->data->checkout->url
