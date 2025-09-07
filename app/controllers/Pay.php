@@ -1639,10 +1639,11 @@ class Pay extends Controller {
                         redirect('pay/' . $this->plan_id . '?' . $trial_skip_parameter . $discount_code_parameter);
                     }
 
-                    /* Redirect directly to Paddle checkout */
-                    $checkout_url = $transaction_response->body->data->checkout->url;
-                    $this->log_payment_error('PADDLE_REDIRECT', 'Redirecting to: ' . $checkout_url);
-                    header('Location: ' . $checkout_url);
+                    /* Redirect directly to Paddle's hosted checkout */
+                    $transaction_id = $transaction_response->body->data->id;
+                    $paddle_checkout_url = 'https://checkout.paddle.com/transaction/' . $transaction_id;
+                    $this->log_payment_error('PADDLE_REDIRECT', 'Redirecting to Paddle checkout: ' . $paddle_checkout_url);
+                    header('Location: ' . $paddle_checkout_url);
                     die();
 
                 } catch (\Exception $exception) {
