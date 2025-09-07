@@ -1639,12 +1639,20 @@ class Pay extends Controller {
                         redirect('pay/' . $this->plan_id . '?' . $trial_skip_parameter . $discount_code_parameter);
                     }
 
-                    /* Redirect directly to Paddle's hosted checkout */
-                    $transaction_id = $transaction_response->body->data->id;
-                    $paddle_checkout_url = 'https://checkout.paddle.com/transaction/' . $transaction_id;
-                    $this->log_payment_error('PADDLE_REDIRECT', 'Redirecting to Paddle checkout: ' . $paddle_checkout_url);
-                    header('Location: ' . $paddle_checkout_url);
-                    die();
+                    /* Redirect to Paddle's checkout URL from the response */
+                    if (isset($transaction_response->body->data->checkout->url)) {
+                        $paddle_checkout_url = $transaction_response->body->data->checkout->url;
+                        $this->log_payment_error('PADDLE_REDIRECT', 'Redirecting to Paddle checkout: ' . $paddle_checkout_url);
+                        header('Location: ' . $paddle_checkout_url);
+                        die();
+                    } else {
+                        /* Fallback if no checkout URL is provided */
+                        $transaction_id = $transaction_response->body->data->id;
+                        $paddle_checkout_url = 'https://checkout.paddle.com/transaction/' . $transaction_id;
+                        $this->log_payment_error('PADDLE_REDIRECT_FALLBACK', 'Using fallback checkout URL: ' . $paddle_checkout_url);
+                        header('Location: ' . $paddle_checkout_url);
+                        die();
+                    }
 
                 } catch (\Exception $exception) {
                     /* Log the actual error for debugging */
