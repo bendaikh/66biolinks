@@ -3,9 +3,12 @@
 $log_entry = '[' . date('Y-m-d H:i:s') . '] - PAY_PHP_ACCESSED - URL: ' . $_SERVER['REQUEST_URI'] . ' - GET params: ' . json_encode($_GET) . PHP_EOL;
 file_put_contents('payment_errors.log', $log_entry, FILE_APPEND | LOCK_EX);
 
-/* Load the application to access settings */
-require_once realpath(__DIR__) . '/app/init.php';
-$App = new Altum\App();
+/* Load config to get Paddle settings */
+require_once realpath(__DIR__) . '/config.php';
+
+/* Get Paddle settings from config */
+$paddle_vendor_id = '244508'; // Your Paddle vendor ID
+$paddle_environment = 'sandbox'; // Change to 'production' for live
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -24,8 +27,8 @@ $App = new Altum\App();
     <script>
         // Initialize Paddle
         Paddle.Setup({
-            vendor: <?php echo json_encode(settings()->paddle->vendor_id); ?>,
-            environment: <?php echo json_encode(settings()->paddle->mode == 'live' ? 'production' : 'sandbox'); ?>
+            vendor: <?php echo json_encode($paddle_vendor_id); ?>,
+            environment: <?php echo json_encode($paddle_environment); ?>
         });
 
         // Check if _ptxn parameter is present

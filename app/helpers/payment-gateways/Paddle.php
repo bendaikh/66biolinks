@@ -86,7 +86,7 @@ class Paddle {
             'collection_mode' => 'automatic',
             'currency_code' => currency(),
             'checkout' => [
-                'url' => SITE_URL . 'pay'
+                'url' => SITE_URL . 'pay.php'
             ]
         ];
 
