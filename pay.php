@@ -16,6 +16,7 @@ $paddle_environment = 'sandbox'; // Change to 'production' for live
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Payment Processing - Paddle Checkout</title>
+    <script src="https://cdn.paddle.com/paddle/v2/paddle.js"></script>
 </head>
 <body>
     <div id="checkout-container">
@@ -32,12 +33,16 @@ $paddle_environment = 'sandbox'; // Change to 'production' for live
             // Log for debugging
             console.log('Paddle transaction ID:', transactionId);
             
-            // For new Paddle Billing, we need to use the correct checkout URL
-            // The new Paddle Billing system uses a different URL format
-            // Let's try the correct format for the new system
-            const checkoutUrl = 'https://checkout.paddle.com/checkout/' + transactionId;
-            console.log('Redirecting to checkout URL:', checkoutUrl);
-            window.location.href = checkoutUrl;
+            // Initialize Paddle with the new Billing API
+            // For new Paddle Billing, we need to use the client-side token
+            Paddle.Initialize({
+                token: '<?php echo $paddle_environment === 'production' ? 'live' : 'sandbox'; ?>'
+            });
+            
+            // Open checkout with transaction ID
+            Paddle.Checkout.open({
+                transactionId: transactionId
+            });
         } else {
             // No transaction ID, redirect to home
             console.log('No transaction ID found, redirecting to home');
