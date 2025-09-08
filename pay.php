@@ -2,6 +2,10 @@
 /* Load the application to access settings */
 require_once realpath(__DIR__) . '/app/init.php';
 $App = new Altum\App();
+
+/* Debug logging */
+$log_entry = '[' . date('Y-m-d H:i:s') . '] - PAY_PHP_ACCESSED - URL: ' . $_SERVER['REQUEST_URI'] . ' - GET params: ' . json_encode($_GET) . PHP_EOL;
+file_put_contents('payment_errors.log', $log_entry, FILE_APPEND | LOCK_EX);
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -32,12 +36,22 @@ $App = new Altum\App();
             // Log for debugging
             console.log('Paddle transaction ID:', transactionId);
             
-            // Open Paddle checkout with the transaction
-            Paddle.Checkout.open({
-                transactionId: transactionId
-            });
+            // Add a small delay to ensure Paddle is fully loaded
+            setTimeout(function() {
+                try {
+                    // Open Paddle checkout with the transaction
+                    Paddle.Checkout.open({
+                        transactionId: transactionId
+                    });
+                } catch (error) {
+                    console.error('Paddle checkout error:', error);
+                    // Fallback: redirect to Paddle's direct checkout URL
+                    window.location.href = 'https://checkout.paddle.com/transaction/' + transactionId;
+                }
+            }, 1000);
         } else {
             // No transaction ID, redirect to home
+            console.log('No transaction ID found, redirecting to home');
             window.location.href = '<?php echo SITE_URL; ?>';
         }
     </script>
