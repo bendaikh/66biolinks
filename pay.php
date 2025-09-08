@@ -8,7 +8,8 @@ require_once realpath(__DIR__) . '/config.php';
 
 /* Get Paddle settings from config */
 $paddle_vendor_id = '244508'; // Your Paddle vendor ID
-$paddle_environment = 'sandbox'; // Change to 'production' for live
+$paddle_environment = 'live'; // Live environment
+$paddle_client_token = 'live_137dcd3b1aa5b2271f21fda047a'; // Your client-side token
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -36,7 +37,7 @@ $paddle_environment = 'sandbox'; // Change to 'production' for live
             // Initialize Paddle with the new Billing API
             // For new Paddle Billing, we need to use the client-side token
             Paddle.Initialize({
-                token: '<?php echo $paddle_environment === 'production' ? 'live' : 'sandbox'; ?>'
+                token: '<?php echo $paddle_client_token; ?>'
             });
             
             // Open checkout with transaction ID
