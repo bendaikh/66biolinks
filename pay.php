@@ -1,11 +1,11 @@
 <?php
+/* Debug logging - log immediately when file is accessed */
+$log_entry = '[' . date('Y-m-d H:i:s') . '] - PAY_PHP_ACCESSED - URL: ' . $_SERVER['REQUEST_URI'] . ' - GET params: ' . json_encode($_GET) . PHP_EOL;
+file_put_contents('payment_errors.log', $log_entry, FILE_APPEND | LOCK_EX);
+
 /* Load the application to access settings */
 require_once realpath(__DIR__) . '/app/init.php';
 $App = new Altum\App();
-
-/* Debug logging */
-$log_entry = '[' . date('Y-m-d H:i:s') . '] - PAY_PHP_ACCESSED - URL: ' . $_SERVER['REQUEST_URI'] . ' - GET params: ' . json_encode($_GET) . PHP_EOL;
-file_put_contents('payment_errors.log', $log_entry, FILE_APPEND | LOCK_EX);
 ?>
 <!DOCTYPE html>
 <html lang="en">
