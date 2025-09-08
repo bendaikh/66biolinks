@@ -27,8 +27,7 @@ $paddle_environment = 'sandbox'; // Change to 'production' for live
     <script>
         // Initialize Paddle
         Paddle.Setup({
-            vendor: <?php echo (int)$paddle_vendor_id; ?>,
-            environment: <?php echo json_encode($paddle_environment); ?>
+            vendor: <?php echo (int)$paddle_vendor_id; ?>
         });
 
         // Check if _ptxn parameter is present
