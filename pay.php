@@ -16,7 +16,6 @@ $paddle_environment = 'sandbox'; // Change to 'production' for live
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Payment Processing - Paddle Checkout</title>
-    <script src="https://cdn.paddle.com/paddle/paddle.js"></script>
 </head>
 <body>
     <div id="checkout-container">
@@ -25,11 +24,6 @@ $paddle_environment = 'sandbox'; // Change to 'production' for live
     </div>
 
     <script>
-        // Initialize Paddle (New Billing API)
-        Paddle.Setup({
-            token: '<?php echo $paddle_environment === 'production' ? 'live' : 'sandbox'; ?>'
-        });
-
         // Check if _ptxn parameter is present
         const urlParams = new URLSearchParams(window.location.search);
         const transactionId = urlParams.get('_ptxn');
