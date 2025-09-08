@@ -25,9 +25,9 @@ $paddle_environment = 'sandbox'; // Change to 'production' for live
     </div>
 
     <script>
-        // Initialize Paddle
+        // Initialize Paddle (New Billing API)
         Paddle.Setup({
-            vendor: <?php echo (int)$paddle_vendor_id; ?>
+            token: '<?php echo $paddle_environment === 'production' ? 'live' : 'sandbox'; ?>'
         });
 
         // Check if _ptxn parameter is present
@@ -38,19 +38,8 @@ $paddle_environment = 'sandbox'; // Change to 'production' for live
             // Log for debugging
             console.log('Paddle transaction ID:', transactionId);
             
-            // Add a small delay to ensure Paddle is fully loaded
-            setTimeout(function() {
-                try {
-                    // Open Paddle checkout with the transaction
-                    Paddle.Checkout.open({
-                        transactionId: transactionId
-                    });
-                } catch (error) {
-                    console.error('Paddle checkout error:', error);
-                    // Fallback: redirect to Paddle's direct checkout URL
-                    window.location.href = 'https://checkout.paddle.com/transaction/' + transactionId;
-                }
-            }, 1000);
+            // Redirect directly to Paddle's checkout URL
+            window.location.href = 'https://checkout.paddle.com/transaction/' + transactionId;
         } else {
             // No transaction ID, redirect to home
             console.log('No transaction ID found, redirecting to home');
