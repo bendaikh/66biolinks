@@ -32,8 +32,12 @@ $paddle_environment = 'sandbox'; // Change to 'production' for live
             // Log for debugging
             console.log('Paddle transaction ID:', transactionId);
             
-            // Redirect directly to Paddle's checkout URL
-            window.location.href = 'https://checkout.paddle.com/transaction/' + transactionId;
+            // For new Paddle Billing, we need to use the correct checkout URL
+            // The new Paddle Billing system uses a different URL format
+            // Let's try the correct format for the new system
+            const checkoutUrl = 'https://checkout.paddle.com/checkout/' + transactionId;
+            console.log('Redirecting to checkout URL:', checkoutUrl);
+            window.location.href = checkoutUrl;
         } else {
             // No transaction ID, redirect to home
             console.log('No transaction ID found, redirecting to home');
