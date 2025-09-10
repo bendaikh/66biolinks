@@ -54,6 +54,17 @@ class PayFirst extends Controller {
             redirect('not-found');
         }
 
+        /* Handle success and cancel returns from payment processors */
+        if(isset($_GET['success']) && $_GET['success'] == '1') {
+            $this->success();
+            return;
+        }
+
+        if(isset($_GET['cancel']) && $_GET['cancel'] == '1') {
+            $this->cancel();
+            return;
+        }
+
         $payment_processors = require APP_PATH . 'includes/payment_processors.php';
         $this->plan_id = isset($this->params[0]) ? $this->params[0] : null;
 
@@ -444,8 +455,8 @@ class PayFirst extends Controller {
             'currency' => currency(),
             'line_items' => [ $stripe_line_item ],
             'metadata' => $stripe_metadata,
-            'success_url' => url('pay-first/' . $this->plan_id . '/success'),
-            'cancel_url' => url('pay-first/' . $this->plan_id . '/cancel'),
+            'success_url' => url('pay-first/' . $this->plan_id . '?success=1'),
+            'cancel_url' => url('pay-first/' . $this->plan_id . '?cancel=1'),
         ];
 
         /* Add subscription data if payment is recurring */
@@ -514,8 +525,8 @@ class PayFirst extends Controller {
                     ]
                 ],
                 'application_context' => [
-                    'return_url' => url('pay-first/' . $this->plan_id . '/success'),
-                    'cancel_url' => url('pay-first/' . $this->plan_id . '/cancel'),
+                    'return_url' => url('pay-first/' . $this->plan_id . '?success=1'),
+                    'cancel_url' => url('pay-first/' . $this->plan_id . '?cancel=1'),
                     'brand_name' => settings()->business->brand_name,
                     'user_action' => 'PAY_NOW'
                 ]
