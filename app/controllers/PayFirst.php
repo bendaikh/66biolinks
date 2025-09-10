@@ -107,6 +107,11 @@ class PayFirst extends Controller {
         $captcha = new Captcha();
 
         if(!empty($_POST) && !settings()->users->register_only_social_logins) {
+            // DEBUG: Log the form submission
+            error_log('PayFirst DEBUG: Form submitted');
+            error_log('PayFirst DEBUG: POST data: ' . json_encode($_POST));
+            error_log('PayFirst DEBUG: Plan ID: ' . $this->plan_id);
+            error_log('PayFirst DEBUG: Payment processor: ' . ($_POST['payment_processor'] ?? 'NOT SET'));
 
             /* Clean some posted variables */
             $_POST['name'] = input_clean($_POST['name'], 64);
@@ -348,6 +353,9 @@ class PayFirst extends Controller {
         }
 
         if(!Alerts::has_field_errors() && !Alerts::has_errors()) {
+            // DEBUG: Log before payment processing
+            error_log('PayFirst DEBUG: About to process payment with processor: ' . $this->payment_processor);
+            
             /* Process payment based on processor */
             switch($this->payment_processor) {
                 case 'stripe':
@@ -371,7 +379,9 @@ class PayFirst extends Controller {
                     break;
                     
                 case 'paddle':
+                    error_log('PayFirst DEBUG: Processing Paddle payment');
                     $this->process_paddle_payment($post_data);
+                    error_log('PayFirst DEBUG: Paddle payment processing completed');
                     break;
                     
                 case 'paystack':
@@ -590,6 +600,9 @@ class PayFirst extends Controller {
     }
 
     private function process_paddle_payment($post_data) {
+        error_log('PayFirst DEBUG: Starting Paddle payment processing');
+        error_log('PayFirst DEBUG: Post data: ' . json_encode($post_data));
+        
         /* Get price details */
         $payment_frequency = $_POST['payment_frequency'];
         $base_amount = $this->plan->prices->{$payment_frequency}->{currency()};
@@ -608,6 +621,7 @@ class PayFirst extends Controller {
         $formatted_price = number_format($total_amount, 2, '.', '');
 
         try {
+            error_log('PayFirst DEBUG: Creating Paddle product and price');
             $product_name = settings()->business->brand_name . ' - ' . $this->plan->name . ' - ' . l('plan.custom_plan.' . $payment_frequency);
             
             /* Check if product already exists, if not create it */
@@ -679,12 +693,15 @@ class PayFirst extends Controller {
             /* Redirect to Paddle's checkout URL from the response */
             if (isset($transaction_response->body->data->checkout->url)) {
                 $paddle_checkout_url = $transaction_response->body->data->checkout->url;
+                error_log('PayFirst DEBUG: Redirecting to Paddle checkout: ' . $paddle_checkout_url);
                 redirect($paddle_checkout_url);
             } else {
+                error_log('PayFirst DEBUG: No checkout URL received from Paddle');
                 throw new \Exception('No checkout URL received from Paddle');
             }
 
         } catch(\Exception $exception) {
+            error_log('PayFirst DEBUG: Paddle payment error: ' . $exception->getMessage());
             Alerts::add_error($exception->getMessage());
         }
     }
