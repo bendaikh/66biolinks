@@ -780,7 +780,7 @@ class PayFirst extends Controller {
             'collection_mode' => 'automatic',
             'currency_code' => currency(),
             'checkout' => [
-                'url' => url('pay-first/' . $this->plan_id)
+                'url' => SITE_URL . 'pay-first.php'
             ]
         ];
 
