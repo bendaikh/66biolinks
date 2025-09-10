@@ -667,8 +667,8 @@ class PayFirst extends Controller {
                 'pending_registration' => 'true'
             ];
 
-            /* Create transaction */
-            $transaction_response = \Altum\PaymentGateways\Paddle::create_transaction(
+            /* Create transaction with pay-first specific return URL */
+            $transaction_response = $this->create_paddle_transaction_pay_first(
                 $items,
                 $post_data['email'],
                 $custom_data
@@ -769,6 +769,27 @@ class PayFirst extends Controller {
         
         Alerts::add_error(l('pay_first.error_message.payment_cancelled'));
         redirect('pay-first/' . $this->plan_id);
+    }
+
+    private function create_paddle_transaction_pay_first($items, $customer_email, $custom_data = []) {
+        $payload = [
+            'items' => $items,
+            'customer_email' => $customer_email,
+            'custom_data' => $custom_data,
+            'collection_mode' => 'automatic',
+            'currency_code' => currency(),
+            'checkout' => [
+                'url' => SITE_URL . 'pay-first/' . $this->plan_id
+            ]
+        ];
+
+        $response = \Unirest\Request::post(
+            \Altum\PaymentGateways\Paddle::get_api_url() . 'transactions',
+            \Altum\PaymentGateways\Paddle::get_headers(),
+            \Unirest\Request\Body::json($payload)
+        );
+
+        return $response;
     }
 
     private function handle_paddle_checkout() {
