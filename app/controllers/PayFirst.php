@@ -65,9 +65,6 @@ class PayFirst extends Controller {
             return;
         }
 
-        /* Handle Paddle transaction checkout */
-        $this->handle_paddle_checkout();
-
         $payment_processors = require APP_PATH . 'includes/payment_processors.php';
         $this->plan_id = isset($this->params[0]) ? $this->params[0] : null;
 
@@ -88,6 +85,9 @@ class PayFirst extends Controller {
         if(!$this->plan->status) {
             redirect('plan');
         }
+
+        /* Handle Paddle transaction checkout */
+        $this->handle_paddle_checkout();
 
         /* Check for potential taxes */
         if($this->plan_id != 'free') {
