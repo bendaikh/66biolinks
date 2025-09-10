@@ -104,23 +104,82 @@ class WebhookStripe extends Controller {
                 break;
         }
 
-        (new Payments())->webhook_process_payment(
-            'stripe',
-            $external_payment_id,
-            $payment_total,
-            $payment_currency,
-            $user_id,
-            $plan_id,
-            $payment_frequency,
-            $code,
-            $discount_amount,
-            $base_amount,
-            $taxes_ids,
-            $payment_type,
-            $payment_subscription_id,
-            $payer_email,
-            $payer_name
-        );
+        /* Check if this is a pay-first payment */
+        $is_pay_first = isset($metadata->pending_registration) && $metadata->pending_registration === 'true';
+        
+        if($is_pay_first) {
+            /* This is a pay-first payment, we need to create the user account */
+            /* Get pending registration data from session or database */
+            $pending_registration_data = null;
+            
+            /* Try to get from database first (stored during payment initiation) */
+            $pending_data = db()->where('payment_id', $external_payment_id)->where('processor', 'stripe')->getOne('pending_registrations');
+            
+            if($pending_data) {
+                $pending_registration_data = json_decode($pending_data->registration_data, true);
+                
+                /* Clean up the pending registration record */
+                db()->where('payment_id', $external_payment_id)->where('processor', 'stripe')->delete('pending_registrations');
+            }
+            
+            if($pending_registration_data) {
+                (new Payments())->webhook_process_payment_pay_first(
+                    'stripe',
+                    $external_payment_id,
+                    $payment_total,
+                    $payment_currency,
+                    $plan_id,
+                    $payment_frequency,
+                    $code,
+                    $discount_amount,
+                    $base_amount,
+                    $taxes_ids,
+                    $payment_type,
+                    $payment_subscription_id,
+                    $payer_email,
+                    $payer_name,
+                    $pending_registration_data
+                );
+            } else {
+                /* Fallback to regular processing if no pending data found */
+                (new Payments())->webhook_process_payment(
+                    'stripe',
+                    $external_payment_id,
+                    $payment_total,
+                    $payment_currency,
+                    $user_id,
+                    $plan_id,
+                    $payment_frequency,
+                    $code,
+                    $discount_amount,
+                    $base_amount,
+                    $taxes_ids,
+                    $payment_type,
+                    $payment_subscription_id,
+                    $payer_email,
+                    $payer_name
+                );
+            }
+        } else {
+            /* Regular payment processing */
+            (new Payments())->webhook_process_payment(
+                'stripe',
+                $external_payment_id,
+                $payment_total,
+                $payment_currency,
+                $user_id,
+                $plan_id,
+                $payment_frequency,
+                $code,
+                $discount_amount,
+                $base_amount,
+                $taxes_ids,
+                $payment_type,
+                $payment_subscription_id,
+                $payer_email,
+                $payer_name
+            );
+        }
 
         echo 'successful';
 

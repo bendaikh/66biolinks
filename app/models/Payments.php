@@ -208,6 +208,204 @@ class Payments extends Model {
         (new Payments())->affiliate_payment_check($payment_id, $total_amount_default_currency, settings()->payment->default_currency, $user);
     }
 
+    public function webhook_process_payment_pay_first($payment_processor, $external_payment_id, $payment_total, $payment_currency, $plan_id, $payment_frequency, $code, $discount_amount, $base_amount, $taxes_ids, $payment_type, $payment_subscription_id, $payer_email, $payer_name, $pending_registration_data) {
+        /* Get the plan details */
+        $plan = db()->where('plan_id', $plan_id)->getOne('plans');
+
+        /* Just make sure the plan is still existing */
+        if(!$plan) {
+            http_response_code(400);die();
+        }
+
+        /* Make sure the transaction is not already existing */
+        if(db()->where('payment_id', $external_payment_id)->where('processor', $payment_processor)->has('payments')) {
+            http_response_code(400);die();
+        }
+
+        /* Check if user already exists by email */
+        $user = db()->where('email', $pending_registration_data['email'])->getOne('users');
+
+        if(!$user) {
+            /* Create the user account */
+            $active = (int) !settings()->users->email_confirmation;
+            $email_code = md5($pending_registration_data['email'] . microtime());
+
+            /* Determine what plan is set by default */
+            $plan_settings = json_encode($plan->settings ?? '');
+            $plan_expiration_date = get_date();
+
+            /* For paid plans, set expiration date based on payment frequency */
+            if($plan_id != 'free') {
+                switch($payment_frequency) {
+                    case 'monthly':
+                        $plan_expiration_date = (new \DateTime())->modify('+1 month')->format('Y-m-d H:i:s');
+                        break;
+                    case 'quarterly':
+                        $plan_expiration_date = (new \DateTime())->modify('+3 months')->format('Y-m-d H:i:s');
+                        break;
+                    case 'biannual':
+                        $plan_expiration_date = (new \DateTime())->modify('+6 months')->format('Y-m-d H:i:s');
+                        break;
+                    case 'annual':
+                        $plan_expiration_date = (new \DateTime())->modify('+1 year')->format('Y-m-d H:i:s');
+                        break;
+                    case 'lifetime':
+                        $plan_expiration_date = (new \DateTime())->modify('+100 years')->format('Y-m-d H:i:s');
+                        break;
+                }
+            }
+
+            $registered_user = (new User())->create(
+                $pending_registration_data['email'],
+                $pending_registration_data['password'],
+                $pending_registration_data['name'],
+                (int) !settings()->users->email_confirmation,
+                'direct',
+                $email_code,
+                null,
+                $pending_registration_data['is_newsletter_subscribed'],
+                $plan_id,
+                $plan_settings,
+                $plan_expiration_date,
+                settings()->main->default_timezone
+            );
+
+            /* Log the action */
+            \Altum\Logger::users($registered_user['user_id'], 'register.success');
+
+            /* Get the user object */
+            $user = db()->where('user_id', $registered_user['user_id'])->getOne('users');
+        } else {
+            /* User exists, update their plan */
+            $current_plan_expiration_date = $plan_id == $user->plan_id ? $user->plan_expiration_date : '';
+            $modifier = match ($payment_frequency) {
+                'monthly' => '+30 days +12 hours',
+                'quarterly' => '+3 months +12 hours',
+                'biannual' => '+6 months +12 hours',
+                'annual' => '+12 months +12 hours',
+                'lifetime' => '+100 years +12 hours',
+            };
+            $plan_expiration_date = (new \DateTime($current_plan_expiration_date))->modify($modifier)->format('Y-m-d H:i:s');
+
+            /* Database query */
+            db()->where('user_id', $user->user_id)->update('users', [
+                'plan_id' => $plan_id,
+                'plan_settings' => $plan->settings,
+                'plan_expiration_date' => $plan_expiration_date,
+                'plan_expiry_reminder' => 0,
+                'plan_trial_done' => 1,
+                'payment_subscription_id' => $payment_subscription_id,
+                'payment_processor' => $payment_processor,
+                'payment_total_amount' => $payment_total,
+                'payment_currency' => $payment_currency,
+            ]);
+        }
+
+        /* Codes */
+        $code = (new Payments())->codes_payment_check($code, $user);
+
+        /* Currency exchange in case its needed */
+        $total_amount_default_currency = $payment_total;
+
+        if(settings()->payment->default_currency != $payment_currency && settings()->payment->currency_exchange_api_key) {
+            try {
+                $response = \Unirest\Request::get('https://api.freecurrencyapi.com/v1/latest?apikey=' . settings()->payment->currency_exchange_api_key . '&base_currency=' . $payment_currency . '&currencies=' . settings()->payment->default_currency);
+
+                if($response->code == 200) {
+                    $total_amount_default_currency = $payment_total * $response->body->data->{settings()->payment->default_currency};
+                    $total_amount_default_currency = number_format($total_amount_default_currency, 2, '.', '');
+                }
+            } catch (\Exception $exception) {
+                /* :) */
+            }
+        }
+
+        $payment_datetime = get_date();
+
+        /* Add a log into the database */
+        $payment_id = db()->insert('payments', [
+            'user_id' => $user->user_id,
+            'plan_id' => $plan_id,
+            'processor' => $payment_processor,
+            'type' => $payment_type,
+            'frequency' => $payment_frequency,
+            'code' => $code ? $code->code : null,
+            'discount_amount' => $discount_amount,
+            'base_amount' => $base_amount,
+            'email' => $payer_email,
+            'payment_id' => $external_payment_id,
+            'name' => $payer_name,
+            'plan' => json_encode(db()->where('plan_id', $plan_id)->getOne('plans', ['plan_id', 'name'])),
+            'billing' => settings()->payment->taxes_and_billing_is_enabled && $user->billing ? $user->billing : null,
+            'business' => json_encode(settings()->business),
+            'taxes_ids' => $taxes_ids,
+            'total_amount' => $payment_total,
+            'total_amount_default_currency' => $total_amount_default_currency,
+            'currency' => $payment_currency,
+            'datetime' => $payment_datetime
+        ]);
+
+        /* Run potential hooks */
+        \Altum\CustomHooks::user_payment_finished(['user' => $user, 'plan' => $plan]);
+
+        /* Clear the cache */
+        cache()->deleteItemsByTag('user_id=' . $user->user_id);
+
+        /* Send notification to the user */
+        $email_template = get_email_template(
+            [],
+            l('global.emails.user_payment.subject'),
+            [
+                '{{NAME}}' => $user->name,
+                '{{PLAN_NAME}}' => $plan->name,
+                '{{PLAN_EXPIRATION_DATE}}' => \Altum\Date::get($plan_expiration_date, 2),
+                '{{USER_PLAN_LINK}}' => url('account-plan'),
+                '{{USER_PAYMENTS_LINK}}' => url('account-payments'),
+            ],
+            l('global.emails.user_payment.body')
+        );
+
+        send_mail($user->email, $email_template->subject, $email_template->body, ['anti_phishing_code' => $user->anti_phishing_code, 'language' => $user->language]);
+
+        /* Send notification to admin if needed */
+        if(settings()->email_notifications->new_payment && !empty(settings()->email_notifications->emails)) {
+            $email_template = get_email_template(
+                [],
+                l('global.emails.admin_new_payment_notification.subject'),
+                [
+                    '{{NAME}}' => str_replace('.', '. ', $user->name),
+                    '{{EMAIL}}' => $user->email,
+                    '{{PLAN_NAME}}' => $plan->name,
+                    '{{TOTAL_AMOUNT}}' => $payment_total,
+                    '{{CURRENCY}}' => $payment_currency,
+                    '{{PAYMENT_PROCESSOR}}' => l('pay.custom_plan.' . $payment_processor),
+                    '{{USER_LINK}}' => url('admin/user-view/' . $user->user_id),
+                ],
+                l('global.emails.admin_new_payment_notification.body')
+            );
+
+            send_mail(explode(',', settings()->email_notifications->emails), $email_template->subject, $email_template->body);
+        }
+
+        /* Send internal notification if needed */
+        if(settings()->internal_notifications->admins_is_enabled && settings()->internal_notifications->new_payment) {
+            db()->insert('internal_notifications', [
+                'for_who' => 'admin',
+                'from_who' => 'system',
+                'icon' => 'fas fa-credit-card',
+                'title' => l('global.notifications.new_payment.title'),
+                'description' => sprintf(l('global.notifications.new_payment.description'), $user->name, $user->email, $payment_total, $payment_currency, l('pay.custom_plan.' . $payment_processor)),
+                'url' => 'admin/payments',
+                'datetime' => get_date(),
+            ]);
+        }
+
+        /* Affiliate */
+        (new Payments())->affiliate_payment_check($payment_id, $total_amount_default_currency, settings()->payment->default_currency, $user);
+
+        return $user;
+    }
+
     public function codes_payment_check($code, $user) {
         /* Make sure the code exists */
         $codes_code = db()->where('code', $code)->where('type', 'discount')->getOne('codes');

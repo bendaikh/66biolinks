@@ -112,7 +112,42 @@ class WebhookPaddle extends Controller {
         $discount_amount = $custom_data['discount_amount'] ?? 0;
         $taxes_ids = $custom_data['taxes_ids'] ?? null;
 
-        if($user_id && $plan_id) {
+        /* Check if this is a pay-first payment */
+        $is_pay_first = isset($custom_data['pending_registration']) && $custom_data['pending_registration'] === 'true';
+        
+        if($is_pay_first) {
+            /* This is a pay-first payment, we need to create the user account */
+            /* Get pending registration data from database */
+            $pending_data = db()->where('payment_id', $external_payment_id)->where('processor', 'paddle')->getOne('pending_registrations');
+            
+            if($pending_data) {
+                $pending_registration_data = json_decode($pending_data->registration_data, true);
+                
+                /* Clean up the pending registration record */
+                db()->where('payment_id', $external_payment_id)->where('processor', 'paddle')->delete('pending_registrations');
+                
+                if($pending_registration_data && $plan_id) {
+                    (new Payments())->webhook_process_payment_pay_first(
+                        'paddle',
+                        $external_payment_id,
+                        $payment_total,
+                        $payment_currency,
+                        $plan_id,
+                        $payment_frequency,
+                        $code,
+                        $discount_amount,
+                        $base_amount,
+                        $taxes_ids,
+                        $payment_type,
+                        $payment_subscription_id,
+                        $payer_email,
+                        $payer_name,
+                        $pending_registration_data
+                    );
+                }
+            }
+        } else if($user_id && $plan_id) {
+            /* Regular payment processing for existing users */
             (new Payments())->webhook_process_payment(
                 'paddle',
                 $external_payment_id,

@@ -86,7 +86,7 @@
                             <?php if(is_logged_in()): ?>
                                 <a href="<?= url('register') ?>" class="btn btn-lg rounded-pill btn-block btn-primary <?= $this->user->plan_id != 'free' ? 'disabled' : null ?>" style="<?= settings()->plan_free->color ? 'background-color: ' . settings()->plan_free->color : null ?>"><?= l('plans.choose') ?></a>
                             <?php else: ?>
-                                <a href="<?= url('register-pay/free') ?>" class="btn btn-lg rounded-pill btn-block btn-primary" style="<?= settings()->plan_free->color ? 'background-color: ' . settings()->plan_free->color : null ?>"><?= l('plans.choose') ?></a>
+                                <a href="<?= url('pay-first/free') ?>" class="btn btn-lg rounded-pill btn-block btn-primary" style="<?= settings()->plan_free->color ? 'background-color: ' . settings()->plan_free->color : null ?>"><?= l('plans.choose') ?></a>
                             <?php endif ?>
                         <?php endif ?>
                     </div>
@@ -151,7 +151,7 @@
                                     <?php endif ?>
                                 </a>
                             <?php else: ?>
-                                <a href="<?= url('register-pay/' . $plan->plan_id) ?>" class="btn btn-lg rounded-pill btn-block btn-primary" style="<?= $plan->color ? 'background-color: ' . $plan->color : null ?>">
+                                <a href="<?= url('pay-first/' . $plan->plan_id) ?>" class="btn btn-lg rounded-pill btn-block btn-primary" style="<?= $plan->color ? 'background-color: ' . $plan->color : null ?>">
                                     <?php if($plan->trial_days): ?>
                                         <?= sprintf(l('plans.trial'), $plan->trial_days) ?>
                                     <?php else: ?>

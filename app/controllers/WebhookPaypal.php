@@ -65,32 +65,103 @@ class WebhookPaypal extends Controller {
                 $payer_name = $response->body->payer->name->given_name . $response->body->payer->name->surname;
 
                 /* Parse metadata */
-                $metadata = explode('&', $response->body->purchase_units[0]->payments->captures[0]->custom_id);
-                $user_id = (int) $metadata[0];
-                $plan_id = (int) $metadata[1];
-                $payment_frequency = $metadata[2];
-                $base_amount = $metadata[3];
-                $code = $metadata[4];
-                $discount_amount = $metadata[5] ? $metadata[5] : 0;
-                $taxes_ids = $metadata[6] ?: null;
+                $custom_id = $response->body->purchase_units[0]->payments->captures[0]->custom_id;
+                
+                /* Check if this is pay-first flow (JSON format) or regular flow (pipe-separated) */
+                if(strpos($custom_id, '{') === 0) {
+                    /* Pay-first flow - JSON format */
+                    $metadata = json_decode($custom_id, true);
+                    $is_pay_first = isset($metadata['pending_registration']) && $metadata['pending_registration'] === 'true';
+                    
+                    if($is_pay_first) {
+                        /* Get pending registration data from database */
+                        $pending_data = db()->where('payment_id', $external_payment_id)->where('processor', 'paypal')->getOne('pending_registrations');
+                        
+                        if($pending_data) {
+                            $pending_registration_data = json_decode($pending_data->registration_data, true);
+                            
+                            /* Clean up the pending registration record */
+                            db()->where('payment_id', $external_payment_id)->where('processor', 'paypal')->delete('pending_registrations');
+                            
+                            if($pending_registration_data && isset($metadata['plan_id'])) {
+                                (new Payments())->webhook_process_payment_pay_first(
+                                    'paypal',
+                                    $external_payment_id,
+                                    $payment_total,
+                                    $payment_currency,
+                                    $metadata['plan_id'],
+                                    $metadata['payment_frequency'],
+                                    $metadata['code'] ?? '',
+                                    $metadata['discount_amount'] ?? 0,
+                                    $metadata['base_amount'] ?? $payment_total,
+                                    $metadata['taxes_ids'] ?? null,
+                                    $payment_type,
+                                    $payment_subscription_id,
+                                    $payer_email,
+                                    $payer_name,
+                                    $pending_registration_data
+                                );
+                            }
+                        }
+                    } else {
+                        /* Regular pay-first format but not pending registration */
+                        $user_id = (int) ($metadata['user_id'] ?? 0);
+                        $plan_id = (int) ($metadata['plan_id'] ?? 0);
+                        $payment_frequency = $metadata['payment_frequency'] ?? '';
+                        $base_amount = $metadata['base_amount'] ?? $payment_total;
+                        $code = $metadata['code'] ?? '';
+                        $discount_amount = $metadata['discount_amount'] ?? 0;
+                        $taxes_ids = $metadata['taxes_ids'] ?? null;
 
-                (new Payments())->webhook_process_payment(
-                    'paypal',
-                    $external_payment_id,
-                    $payment_total,
-                    $payment_currency,
-                    $user_id,
-                    $plan_id,
-                    $payment_frequency,
-                    $code,
-                    $discount_amount,
-                    $base_amount,
-                    $taxes_ids,
-                    $payment_type,
-                    $payment_subscription_id,
-                    $payer_email,
-                    $payer_name
-                );
+                        if($user_id && $plan_id) {
+                            (new Payments())->webhook_process_payment(
+                                'paypal',
+                                $external_payment_id,
+                                $payment_total,
+                                $payment_currency,
+                                $user_id,
+                                $plan_id,
+                                $payment_frequency,
+                                $code,
+                                $discount_amount,
+                                $base_amount,
+                                $taxes_ids,
+                                $payment_type,
+                                $payment_subscription_id,
+                                $payer_email,
+                                $payer_name
+                            );
+                        }
+                    }
+                } else {
+                    /* Regular flow - pipe-separated format */
+                    $metadata = explode('&', $custom_id);
+                    $user_id = (int) $metadata[0];
+                    $plan_id = (int) $metadata[1];
+                    $payment_frequency = $metadata[2];
+                    $base_amount = $metadata[3];
+                    $code = $metadata[4];
+                    $discount_amount = $metadata[5] ? $metadata[5] : 0;
+                    $taxes_ids = $metadata[6] ?: null;
+
+                    (new Payments())->webhook_process_payment(
+                        'paypal',
+                        $external_payment_id,
+                        $payment_total,
+                        $payment_currency,
+                        $user_id,
+                        $plan_id,
+                        $payment_frequency,
+                        $code,
+                        $discount_amount,
+                        $base_amount,
+                        $taxes_ids,
+                        $payment_type,
+                        $payment_subscription_id,
+                        $payer_email,
+                        $payer_name
+                    );
+                }
 
                 die('successful');
             }
