@@ -772,6 +772,7 @@ class PayFirst extends Controller {
     }
 
     private function create_paddle_transaction_pay_first($items, $customer_email, $custom_data = []) {
+        /* Use the standard Paddle create_transaction method but with pay-first specific checkout URL */
         $payload = [
             'items' => $items,
             'customer_email' => $customer_email,
@@ -779,7 +780,7 @@ class PayFirst extends Controller {
             'collection_mode' => 'automatic',
             'currency_code' => currency(),
             'checkout' => [
-                'url' => SITE_URL . 'pay-first/' . $this->plan_id
+                'url' => url('pay-first/' . $this->plan_id)
             ]
         ];
 
@@ -793,6 +794,9 @@ class PayFirst extends Controller {
     }
 
     private function handle_paddle_checkout() {
+        /* Log all GET parameters for debugging */
+        error_log('PayFirst DEBUG: GET parameters: ' . json_encode($_GET));
+        
         /* Check if this is a Paddle transaction checkout */
         if(isset($_GET['_ptxn']) && !empty($_GET['_ptxn'])) {
             $transaction_id = $_GET['_ptxn'];
@@ -802,7 +806,8 @@ class PayFirst extends Controller {
             /* Redirect to Paddle's hosted checkout */
             $paddle_checkout_url = 'https://checkout.paddle.com/transaction/' . $transaction_id;
             error_log('PayFirst DEBUG: Redirecting to Paddle hosted checkout: ' . $paddle_checkout_url);
-            redirect($paddle_checkout_url);
+            header('Location: ' . $paddle_checkout_url);
+            die();
         }
     }
 }
