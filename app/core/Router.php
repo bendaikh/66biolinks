@@ -561,6 +561,15 @@ class Router {
                 ]
             ],
 
+            'register-pay' => [
+                'controller' => 'RegisterPay',
+                'settings' => [
+                    'wrapper' => 'register_pay_wrapper',
+                    'no_browser_language_detection' => true,
+                    'currency_switcher' => true,
+                ]
+            ],
+
             'affiliate' => [
                 'controller' => 'Affiliate'
             ],
