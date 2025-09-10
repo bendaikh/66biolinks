@@ -697,13 +697,15 @@ class PayFirst extends Controller {
             if (isset($transaction_response->body->data->checkout->url)) {
                 $paddle_checkout_url = $transaction_response->body->data->checkout->url;
                 error_log('PayFirst DEBUG: Redirecting to Paddle checkout: ' . $paddle_checkout_url);
-                redirect($paddle_checkout_url);
+                header('Location: ' . $paddle_checkout_url);
+                die();
             } else {
                 /* Fallback: construct Paddle checkout URL using transaction ID */
                 $transaction_id = $transaction_response->body->data->id;
                 $paddle_checkout_url = 'https://checkout.paddle.com/transaction/' . $transaction_id;
                 error_log('PayFirst DEBUG: Using fallback Paddle checkout URL: ' . $paddle_checkout_url);
-                redirect($paddle_checkout_url);
+                header('Location: ' . $paddle_checkout_url);
+                die();
             }
 
         } catch(\Exception $exception) {
