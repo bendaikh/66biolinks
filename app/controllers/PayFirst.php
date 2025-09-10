@@ -65,6 +65,9 @@ class PayFirst extends Controller {
             return;
         }
 
+        /* Handle Paddle transaction checkout */
+        $this->handle_paddle_checkout();
+
         $payment_processors = require APP_PATH . 'includes/payment_processors.php';
         $this->plan_id = isset($this->params[0]) ? $this->params[0] : null;
 
@@ -696,8 +699,11 @@ class PayFirst extends Controller {
                 error_log('PayFirst DEBUG: Redirecting to Paddle checkout: ' . $paddle_checkout_url);
                 redirect($paddle_checkout_url);
             } else {
-                error_log('PayFirst DEBUG: No checkout URL received from Paddle');
-                throw new \Exception('No checkout URL received from Paddle');
+                /* Fallback: construct Paddle checkout URL using transaction ID */
+                $transaction_id = $transaction_response->body->data->id;
+                $paddle_checkout_url = 'https://checkout.paddle.com/transaction/' . $transaction_id;
+                error_log('PayFirst DEBUG: Using fallback Paddle checkout URL: ' . $paddle_checkout_url);
+                redirect($paddle_checkout_url);
             }
 
         } catch(\Exception $exception) {
@@ -763,5 +769,19 @@ class PayFirst extends Controller {
         
         Alerts::add_error(l('pay_first.error_message.payment_cancelled'));
         redirect('pay-first/' . $this->plan_id);
+    }
+
+    private function handle_paddle_checkout() {
+        /* Check if this is a Paddle transaction checkout */
+        if(isset($_GET['_ptxn']) && !empty($_GET['_ptxn'])) {
+            $transaction_id = $_GET['_ptxn'];
+            
+            error_log('PayFirst DEBUG: Handling Paddle checkout with transaction ID: ' . $transaction_id);
+            
+            /* Redirect to Paddle's hosted checkout */
+            $paddle_checkout_url = 'https://checkout.paddle.com/transaction/' . $transaction_id;
+            error_log('PayFirst DEBUG: Redirecting to Paddle hosted checkout: ' . $paddle_checkout_url);
+            redirect($paddle_checkout_url);
+        }
     }
 }
