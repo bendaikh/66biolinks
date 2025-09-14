@@ -112,6 +112,8 @@ return [
     'global.details' => 'Details',
     'global.type' => 'Type',
     'global.view_all' => 'View all',
+    'global.show_more' => 'Show more',
+    'global.show_less' => 'Show less',
     'global.select_all' => 'Select all',
     'global.deselect_all' => 'Deselect all',
     'global.show' => 'Show',

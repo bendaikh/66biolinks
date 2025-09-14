@@ -63,7 +63,7 @@
 <?php endif ?>
 
 <div>
-    <div class="row justify-content-around">
+    <div class="row align-items-start justify-content-around">
 
         <?php if(settings()->plan_free->status == 1): ?>
 
@@ -201,6 +201,26 @@
                 $('[data-payment-frequency]').on('click', payment_frequency_handler);
 
                 payment_frequency_handler();
+
+                // Show More/Less Features functionality
+                $('.show-more-features').on('click', function() {
+                    const $button = $(this);
+                    const $icon = $button.find('i');
+                    const $showMoreText = $button.find('.show-more-text');
+                    const $showLessText = $button.find('.show-less-text');
+                    
+                    if ($icon.hasClass('fa-chevron-down')) {
+                        // Show more
+                        $icon.removeClass('fa-chevron-down').addClass('fa-chevron-up');
+                        $showMoreText.addClass('d-none');
+                        $showLessText.removeClass('d-none');
+                    } else {
+                        // Show less
+                        $icon.removeClass('fa-chevron-up').addClass('fa-chevron-down');
+                        $showMoreText.removeClass('d-none');
+                        $showLessText.addClass('d-none');
+                    }
+                });
             </script>
         <?php \Altum\Event::add_content(ob_get_clean(), 'javascript') ?>
 

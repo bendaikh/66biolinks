@@ -4,36 +4,14 @@
     <?php $additional_domains = (new \Altum\Models\Domain())->get_available_additional_domains(); ?>
 <?php endif ?>
 
+<?php $unique_id = uniqid('pf_'); ?>
+
 <ul class="pricing-features">
+    <!-- Key Features (Always Visible) -->
     <?php if(settings()->links->biolinks_is_enabled): ?>
         <li>
             <div><?= sprintf(l('global.plan_settings.biolinks_limit'), ($data->plan_settings->biolinks_limit == -1 ? l('global.unlimited') : nr($data->plan_settings->biolinks_limit))) ?></div>
             <i class="fas fa-fw fa-sm <?= $data->plan_settings->biolinks_limit ? 'fa-check-circle text-success' : 'fa-times-circle text-muted' ?>"></i>
-        </li>
-
-        <li>
-            <div><?= sprintf(l('global.plan_settings.biolink_blocks_limit'), ($data->plan_settings->biolink_blocks_limit == -1 ? l('global.unlimited') : nr($data->plan_settings->biolink_blocks_limit))) ?></div>
-            <i class="fas fa-fw fa-sm <?= $data->plan_settings->biolink_blocks_limit ? 'fa-check-circle text-success' : 'fa-times-circle text-muted' ?>"></i>
-        </li>
-
-        <?php $enabled_biolink_blocks = array_filter((array) $data->plan_settings->enabled_biolink_blocks) ?>
-        <?php $enabled_biolink_blocks_count = count($enabled_biolink_blocks) ?>
-        <?php
-        $enabled_biolink_blocks_string = implode(', ', array_map(function($key) {
-            return l('link.biolink.blocks.' . mb_strtolower($key));
-        }, array_keys($enabled_biolink_blocks)));
-        ?>
-        <li>
-            <div class="<?= $enabled_biolink_blocks_count ? null : 'text-muted' ?>">
-                <?php if($enabled_biolink_blocks_count == count(require APP_PATH . 'includes/enabled_biolink_blocks.php')): ?>
-                    <?= l('global.plan_settings.enabled_biolink_blocks_all') ?>
-                <?php else: ?>
-                    <?= sprintf(l('global.plan_settings.enabled_biolink_blocks_x'), '<strong>' . nr($enabled_biolink_blocks_count) . '</strong>') ?>
-                <?php endif ?>
-
-                <span class="mr-1" data-toggle="tooltip" title="<?= $enabled_biolink_blocks_string ?>"><i class="fas fa-fw fa-xs fa-circle-question text-gray-500"></i></span>
-            </div>
-            <i class="fas fa-fw fa-sm <?= $enabled_biolink_blocks_count ? 'fa-check-circle text-success' : 'fa-times-circle text-muted' ?>"></i>
         </li>
     <?php endif ?>
 
@@ -41,118 +19,6 @@
         <li>
             <div><?= sprintf(l('global.plan_settings.links_limit'), ($data->plan_settings->links_limit == -1 ? l('global.unlimited') : nr($data->plan_settings->links_limit))) ?></div>
             <i class="fas fa-fw fa-sm <?= $data->plan_settings->links_limit ? 'fa-check-circle text-success' : 'fa-times-circle text-muted' ?>"></i>
-        </li>
-
-        <li>
-            <div><?= sprintf(l('global.plan_settings.links_bulk_limit'), ($data->plan_settings->links_bulk_limit == -1 ? l('global.unlimited') : nr($data->plan_settings->links_bulk_limit))) ?></div>
-            <i class="fas fa-fw fa-sm <?= $data->plan_settings->links_bulk_limit ? 'fa-check-circle text-success' : 'fa-times-circle text-muted' ?>"></i>
-        </li>
-    <?php endif ?>
-
-    <?php if(settings()->links->files_is_enabled): ?>
-        <li>
-            <div><?= sprintf(l('global.plan_settings.files_limit'), ($data->plan_settings->files_limit == -1 ? l('global.unlimited') : nr($data->plan_settings->files_limit))) ?></div>
-            <i class="fas fa-fw fa-sm <?= $data->plan_settings->files_limit ? 'fa-check-circle text-success' : 'fa-times-circle text-muted' ?>"></i>
-        </li>
-    <?php endif ?>
-
-    <?php if(settings()->links->vcards_is_enabled): ?>
-        <li>
-            <div><?= sprintf(l('global.plan_settings.vcards_limit'), ($data->plan_settings->vcards_limit == -1 ? l('global.unlimited') : nr($data->plan_settings->vcards_limit))) ?></div>
-            <i class="fas fa-fw fa-sm <?= $data->plan_settings->vcards_limit ? 'fa-check-circle text-success' : 'fa-times-circle text-muted' ?>"></i>
-        </li>
-    <?php endif ?>
-
-    <?php if(settings()->links->events_is_enabled): ?>
-        <li>
-            <div><?= sprintf(l('global.plan_settings.events_limit'), ($data->plan_settings->events_limit == -1 ? l('global.unlimited') : nr($data->plan_settings->events_limit))) ?></div>
-            <i class="fas fa-fw fa-sm <?= $data->plan_settings->events_limit ? 'fa-check-circle text-success' : 'fa-times-circle text-muted' ?>"></i>
-        </li>
-    <?php endif ?>
-
-    <?php if(settings()->links->static_is_enabled): ?>
-        <li>
-            <div><?= sprintf(l('global.plan_settings.static_limit'), ($data->plan_settings->static_limit == -1 ? l('global.unlimited') : nr($data->plan_settings->static_limit))) ?></div>
-            <i class="fas fa-fw fa-sm <?= $data->plan_settings->static_limit ? 'fa-check-circle text-success' : 'fa-times-circle text-muted' ?>"></i>
-        </li>
-    <?php endif ?>
-
-    <?php if(settings()->codes->qr_codes_is_enabled): ?>
-        <li>
-            <div><?= sprintf(l('global.plan_settings.qr_codes_limit'), ($data->plan_settings->qr_codes_limit == -1 ? l('global.unlimited') : nr($data->plan_settings->qr_codes_limit))) ?></div>
-            <i class="fas fa-fw fa-sm <?= $data->plan_settings->qr_codes_limit ? 'fa-check-circle text-success' : 'fa-times-circle text-muted' ?>"></i>
-        </li>
-
-        <li>
-            <div><?= sprintf(l('global.plan_settings.qr_codes_bulk_limit'), ($data->plan_settings->qr_codes_bulk_limit == -1 ? l('global.unlimited') : nr($data->plan_settings->qr_codes_bulk_limit))) ?></div>
-            <i class="fas fa-fw fa-sm <?= $data->plan_settings->qr_codes_bulk_limit ? 'fa-check-circle text-success' : 'fa-times-circle text-muted' ?>"></i>
-        </li>
-    <?php endif ?>
-
-    <?php if(\Altum\Plugin::is_active('email-signatures') && settings()->signatures->is_enabled): ?>
-        <li>
-            <div><?= sprintf(l('global.plan_settings.signatures_limit'), ($data->plan_settings->signatures_limit == -1 ? l('global.unlimited') : nr($data->plan_settings->signatures_limit))) ?></div>
-            <i class="fas fa-fw fa-sm <?= $data->plan_settings->signatures_limit ? 'fa-check-circle text-success' : 'fa-times-circle text-muted' ?>"></i>
-        </li>
-    <?php endif ?>
-
-    <?php if(settings()->links->splash_page_is_enabled): ?>
-        <li>
-            <div><?= sprintf(l('global.plan_settings.splash_pages_limit'), ($data->plan_settings->splash_pages_limit == -1 ? l('global.unlimited') : nr($data->plan_settings->splash_pages_limit))) ?></div>
-            <i class="fas fa-fw fa-sm <?= $data->plan_settings->splash_pages_limit ? 'fa-check-circle text-success' : 'fa-times-circle text-muted' ?>"></i>
-        </li>
-    <?php endif ?>
-
-    <?php if(settings()->links->pixels_is_enabled): ?>
-        <li>
-            <div><?= sprintf(l('global.plan_settings.pixels_limit'), ($data->plan_settings->pixels_limit == -1 ? l('global.unlimited') : nr($data->plan_settings->pixels_limit))) ?></div>
-            <i class="fas fa-fw fa-sm <?= $data->plan_settings->pixels_limit ? 'fa-check-circle text-success' : 'fa-times-circle text-muted' ?>"></i>
-        </li>
-    <?php endif ?>
-
-    <?php if(settings()->links->projects_is_enabled): ?>
-    <li>
-        <div><?= sprintf(l('global.plan_settings.projects_limit'), ($data->plan_settings->projects_limit == -1 ? l('global.unlimited') : nr($data->plan_settings->projects_limit))) ?></div>
-        <i class="fas fa-fw fa-sm <?= $data->plan_settings->projects_limit ? 'fa-check-circle text-success' : 'fa-times-circle text-muted' ?>"></i>
-    </li>
-    <?php endif ?>
-
-    <?php if(\Altum\Plugin::is_active('teams')): ?>
-        <li>
-            <div>
-                <?= sprintf(l('global.plan_settings.teams_limit'), ($data->plan_settings->teams_limit == -1 ? l('global.unlimited') : nr($data->plan_settings->teams_limit))) ?>
-
-                <span class="ml-1" data-toggle="tooltip" data-html="true" title="<?= sprintf(l('global.plan_settings.team_members_limit'), '<strong>' . ($data->plan_settings->team_members_limit == -1 ? l('global.unlimited') : nr($data->plan_settings->team_members_limit)) . '</strong>') ?>"><i class="fas fa-fw fa-xs fa-circle-question text-gray-500"></i></span>
-            </div>
-            <i class="fas fa-fw fa-sm <?= $data->plan_settings->teams_limit ? 'fa-check-circle text-success' : 'fa-times-circle text-muted' ?>"></i>
-        </li>
-    <?php endif ?>
-
-    <?php if(settings()->links->biolinks_is_enabled || settings()->links->shortener_is_enabled || settings()->links->files_is_enabled || settings()->links->vcards_is_enabled || settings()->links->events_is_enabled || settings()->links->static_is_enabled): ?>
-    <?php ob_start() ?>
-    <?php $notification_handlers_icon = 'fa-times text-muted'; ?>
-    <div class='d-flex flex-column'>
-        <?php foreach(array_keys(require APP_PATH . 'includes/notification_handlers.php') as $notification_handler): ?>
-            <?php if($data->plan_settings->{'notification_handlers_' . $notification_handler . '_limit'} != 0) $notification_handlers_icon = 'fa-check text-success'  ?>
-            <span class='my-1'><?= sprintf(l('global.plan_settings.notification_handlers_' . $notification_handler . '_limit'), '<strong>' . ($data->plan_settings->{'notification_handlers_' . $notification_handler . '_limit'} == -1 ? l('global.unlimited') : nr($data->plan_settings->{'notification_handlers_' . $notification_handler . '_limit'})) . '</strong>') ?></span>
-        <?php endforeach ?>
-    </div>
-    <?php $html = ob_get_clean() ?>
-
-    <div class="d-flex justify-content-between align-items-center my-3">
-        <div>
-            <?= l('global.plan_settings.notification_handlers_limit') ?>
-            <span class="ml-1" data-toggle="tooltip" data-html="true" title="<?= $html ?>"><i class="fas fa-fw fa-xs fa-circle-question text-gray-500"></i></span>
-        </div>
-
-        <i class="fas fa-fw fa-sm <?= $notification_handlers_icon ?>"></i>
-    </div>
-    <?php endif ?>
-
-    <?php if(\Altum\Plugin::is_active('affiliate') && settings()->affiliate->is_enabled): ?>
-        <li>
-            <div><?= sprintf(l('global.plan_settings.affiliate_commission_percentage'), nr($data->plan_settings->affiliate_commission_percentage) . '%') ?></div>
-            <i class="fas fa-fw fa-sm <?= $data->plan_settings->affiliate_commission_percentage ? 'fa-check-circle text-success' : 'fa-times-circle text-muted' ?>"></i>
         </li>
     <?php endif ?>
 
@@ -163,31 +29,185 @@
         </li>
     <?php endif ?>
 
-    <?php if(settings()->links->biolinks_is_enabled || settings()->links->shortener_is_enabled || settings()->links->files_is_enabled || settings()->links->vcards_is_enabled || settings()->links->events_is_enabled || settings()->links->static_is_enabled): ?>
-    <li>
-        <div data-toggle="tooltip" title="<?= ($data->plan_settings->track_links_retention == -1 ? '' : $data->plan_settings->track_links_retention . ' ' . l('global.date.days')) ?>"><?= sprintf(l('global.plan_settings.track_links_retention'), ($data->plan_settings->track_links_retention == -1 ? l('global.unlimited') : \Altum\Date::days_format($data->plan_settings->track_links_retention))) ?></div>
-        <i class="fas fa-fw fa-sm <?= $data->plan_settings->track_links_retention ? 'fa-check-circle text-success' : 'fa-times-circle text-muted' ?>"></i>
-    </li>
-    <?php endif ?>
-
-    <?php if(settings()->links->email_reports_is_enabled): ?>
-        <li class="pricing-feature d-flex justify-content-between align-items-center">
-            <div><?= settings()->links->email_reports_is_enabled ? l('global.plan_settings.email_reports_is_enabled_' . settings()->links->email_reports_is_enabled) : l('global.plan_settings.email_reports_is_enabled') ?></div>
-
-            <i class="fas fa-fw fa-sm <?= $data->plan_settings->email_reports_is_enabled ? 'fa-check text-success' : 'fa-times text-muted' ?>"></i>
-        </li>
-    <?php endif ?>
-
-    <?php if(settings()->links->additional_domains_is_enabled): ?>
+    <?php if(settings()->codes->qr_codes_is_enabled): ?>
         <li>
-            <div>
-                <?= sprintf(l('global.plan_settings.additional_domains'), '<strong>' . nr(count($data->plan_settings->additional_domains ?? [])) . '</strong>') ?>
-
-                <span class="mr-1" data-toggle="tooltip" title="<?= sprintf(l('global.plan_settings.additional_domains_help'), implode(', ', array_map(function($domain_id) use($additional_domains) { return $additional_domains[$domain_id]->host ?? null; }, $data->plan_settings->additional_domains ?? []))) ?>"><i class="fas fa-fw fa-xs fa-circle-question text-gray-500"></i></span>
-            </div>
-            <i class="fas fa-fw fa-sm <?= count($data->plan_settings->additional_domains ?? []) ? 'fa-check-circle text-success' : 'fa-times-circle text-muted' ?>"></i>
+            <div><?= sprintf(l('global.plan_settings.qr_codes_limit'), ($data->plan_settings->qr_codes_limit == -1 ? l('global.unlimited') : nr($data->plan_settings->qr_codes_limit))) ?></div>
+            <i class="fas fa-fw fa-sm <?= $data->plan_settings->qr_codes_limit ? 'fa-check-circle text-success' : 'fa-times-circle text-muted' ?>"></i>
         </li>
     <?php endif ?>
+
+    <!-- Show More Button -->
+    <div class="d-flex justify-content-center my-3">
+        <button type="button" class="btn btn-sm btn-outline-primary show-more-features" data-toggle="collapse" data-target="#additional-features-<?= $unique_id ?>">
+            <i class="fas fa-fw fa-sm fa-chevron-down mr-1"></i> 
+            <span class="show-more-text"><?= l('global.view_more') ?></span>
+            <span class="show-less-text d-none"><?= l('global.hide') ?></span>
+        </button>
+    </div>
+
+    <!-- Additional Features (Collapsible) -->
+    <div id="additional-features-<?= $unique_id ?>" class="collapse additional-features-container">
+        <?php if(settings()->links->biolinks_is_enabled): ?>
+            <li>
+                <div><?= sprintf(l('global.plan_settings.biolink_blocks_limit'), ($data->plan_settings->biolink_blocks_limit == -1 ? l('global.unlimited') : nr($data->plan_settings->biolink_blocks_limit))) ?></div>
+                <i class="fas fa-fw fa-sm <?= $data->plan_settings->biolink_blocks_limit ? 'fa-check-circle text-success' : 'fa-times-circle text-muted' ?>"></i>
+            </li>
+
+            <?php $enabled_biolink_blocks = array_filter((array) $data->plan_settings->enabled_biolink_blocks) ?>
+            <?php $enabled_biolink_blocks_count = count($enabled_biolink_blocks) ?>
+            <?php
+            $enabled_biolink_blocks_string = implode(', ', array_map(function($key) {
+                return l('link.biolink.blocks.' . mb_strtolower($key));
+            }, array_keys($enabled_biolink_blocks)));
+            ?>
+            <li>
+                <div class="<?= $enabled_biolink_blocks_count ? null : 'text-muted' ?>">
+                    <?php if($enabled_biolink_blocks_count == count(require APP_PATH . 'includes/enabled_biolink_blocks.php')): ?>
+                        <?= l('global.plan_settings.enabled_biolink_blocks_all') ?>
+                    <?php else: ?>
+                        <?= sprintf(l('global.plan_settings.enabled_biolink_blocks_x'), '<strong>' . nr($enabled_biolink_blocks_count) . '</strong>') ?>
+                    <?php endif ?>
+
+                    <span class="mr-1" data-toggle="tooltip" title="<?= $enabled_biolink_blocks_string ?>"><i class="fas fa-fw fa-xs fa-circle-question text-gray-500"></i></span>
+                </div>
+                <i class="fas fa-fw fa-sm <?= $enabled_biolink_blocks_count ? 'fa-check-circle text-success' : 'fa-times-circle text-muted' ?>"></i>
+            </li>
+        <?php endif ?>
+
+        <?php if(settings()->links->shortener_is_enabled): ?>
+            <li>
+                <div><?= sprintf(l('global.plan_settings.links_bulk_limit'), ($data->plan_settings->links_bulk_limit == -1 ? l('global.unlimited') : nr($data->plan_settings->links_bulk_limit))) ?></div>
+                <i class="fas fa-fw fa-sm <?= $data->plan_settings->links_bulk_limit ? 'fa-check-circle text-success' : 'fa-times-circle text-muted' ?>"></i>
+            </li>
+        <?php endif ?>
+
+        <?php if(settings()->links->files_is_enabled): ?>
+            <li>
+                <div><?= sprintf(l('global.plan_settings.files_limit'), ($data->plan_settings->files_limit == -1 ? l('global.unlimited') : nr($data->plan_settings->files_limit))) ?></div>
+                <i class="fas fa-fw fa-sm <?= $data->plan_settings->files_limit ? 'fa-check-circle text-success' : 'fa-times-circle text-muted' ?>"></i>
+            </li>
+        <?php endif ?>
+
+        <?php if(settings()->links->vcards_is_enabled): ?>
+            <li>
+                <div><?= sprintf(l('global.plan_settings.vcards_limit'), ($data->plan_settings->vcards_limit == -1 ? l('global.unlimited') : nr($data->plan_settings->vcards_limit))) ?></div>
+                <i class="fas fa-fw fa-sm <?= $data->plan_settings->vcards_limit ? 'fa-check-circle text-success' : 'fa-times-circle text-muted' ?>"></i>
+            </li>
+        <?php endif ?>
+
+        <?php if(settings()->links->events_is_enabled): ?>
+            <li>
+                <div><?= sprintf(l('global.plan_settings.events_limit'), ($data->plan_settings->events_limit == -1 ? l('global.unlimited') : nr($data->plan_settings->events_limit))) ?></div>
+                <i class="fas fa-fw fa-sm <?= $data->plan_settings->events_limit ? 'fa-check-circle text-success' : 'fa-times-circle text-muted' ?>"></i>
+            </li>
+        <?php endif ?>
+
+        <?php if(settings()->links->static_is_enabled): ?>
+            <li>
+                <div><?= sprintf(l('global.plan_settings.static_limit'), ($data->plan_settings->static_limit == -1 ? l('global.unlimited') : nr($data->plan_settings->static_limit))) ?></div>
+                <i class="fas fa-fw fa-sm <?= $data->plan_settings->static_limit ? 'fa-check-circle text-success' : 'fa-times-circle text-muted' ?>"></i>
+            </li>
+        <?php endif ?>
+
+        <?php if(settings()->codes->qr_codes_is_enabled): ?>
+            <li>
+                <div><?= sprintf(l('global.plan_settings.qr_codes_bulk_limit'), ($data->plan_settings->qr_codes_bulk_limit == -1 ? l('global.unlimited') : nr($data->plan_settings->qr_codes_bulk_limit))) ?></div>
+                <i class="fas fa-fw fa-sm <?= $data->plan_settings->qr_codes_bulk_limit ? 'fa-check-circle text-success' : 'fa-times-circle text-muted' ?>"></i>
+            </li>
+        <?php endif ?>
+
+        <?php if(\Altum\Plugin::is_active('email-signatures') && settings()->signatures->is_enabled): ?>
+            <li>
+                <div><?= sprintf(l('global.plan_settings.signatures_limit'), ($data->plan_settings->signatures_limit == -1 ? l('global.unlimited') : nr($data->plan_settings->signatures_limit))) ?></div>
+                <i class="fas fa-fw fa-sm <?= $data->plan_settings->signatures_limit ? 'fa-check-circle text-success' : 'fa-times-circle text-muted' ?>"></i>
+            </li>
+        <?php endif ?>
+
+        <?php if(settings()->links->splash_page_is_enabled): ?>
+            <li>
+                <div><?= sprintf(l('global.plan_settings.splash_pages_limit'), ($data->plan_settings->splash_pages_limit == -1 ? l('global.unlimited') : nr($data->plan_settings->splash_pages_limit))) ?></div>
+                <i class="fas fa-fw fa-sm <?= $data->plan_settings->splash_pages_limit ? 'fa-check-circle text-success' : 'fa-times-circle text-muted' ?>"></i>
+            </li>
+        <?php endif ?>
+
+        <?php if(settings()->links->pixels_is_enabled): ?>
+            <li>
+                <div><?= sprintf(l('global.plan_settings.pixels_limit'), ($data->plan_settings->pixels_limit == -1 ? l('global.unlimited') : nr($data->plan_settings->pixels_limit))) ?></div>
+                <i class="fas fa-fw fa-sm <?= $data->plan_settings->pixels_limit ? 'fa-check-circle text-success' : 'fa-times-circle text-muted' ?>"></i>
+            </li>
+        <?php endif ?>
+
+        <?php if(settings()->links->projects_is_enabled): ?>
+        <li>
+            <div><?= sprintf(l('global.plan_settings.projects_limit'), ($data->plan_settings->projects_limit == -1 ? l('global.unlimited') : nr($data->plan_settings->projects_limit))) ?></div>
+            <i class="fas fa-fw fa-sm <?= $data->plan_settings->projects_limit ? 'fa-check-circle text-success' : 'fa-times-circle text-muted' ?>"></i>
+        </li>
+        <?php endif ?>
+
+        <?php if(\Altum\Plugin::is_active('teams')): ?>
+            <li>
+                <div>
+                    <?= sprintf(l('global.plan_settings.teams_limit'), ($data->plan_settings->teams_limit == -1 ? l('global.unlimited') : nr($data->plan_settings->teams_limit))) ?>
+
+                    <span class="ml-1" data-toggle="tooltip" data-html="true" title="<?= sprintf(l('global.plan_settings.team_members_limit'), '<strong>' . ($data->plan_settings->team_members_limit == -1 ? l('global.unlimited') : nr($data->plan_settings->team_members_limit)) . '</strong>') ?>"><i class="fas fa-fw fa-xs fa-circle-question text-gray-500"></i></span>
+                </div>
+                <i class="fas fa-fw fa-sm <?= $data->plan_settings->teams_limit ? 'fa-check-circle text-success' : 'fa-times-circle text-muted' ?>"></i>
+            </li>
+        <?php endif ?>
+
+        <?php if(settings()->links->biolinks_is_enabled || settings()->links->shortener_is_enabled || settings()->links->files_is_enabled || settings()->links->vcards_is_enabled || settings()->links->events_is_enabled || settings()->links->static_is_enabled): ?>
+        <?php ob_start() ?>
+        <?php $notification_handlers_icon = 'fa-times text-muted'; ?>
+        <div class='d-flex flex-column'>
+            <?php foreach(array_keys(require APP_PATH . 'includes/notification_handlers.php') as $notification_handler): ?>
+                <?php if($data->plan_settings->{'notification_handlers_' . $notification_handler . '_limit'} != 0) $notification_handlers_icon = 'fa-check text-success'  ?>
+                <span class='my-1'><?= sprintf(l('global.plan_settings.notification_handlers_' . $notification_handler . '_limit'), '<strong>' . ($data->plan_settings->{'notification_handlers_' . $notification_handler . '_limit'} == -1 ? l('global.unlimited') : nr($data->plan_settings->{'notification_handlers_' . $notification_handler . '_limit'})) . '</strong>') ?></span>
+            <?php endforeach ?>
+        </div>
+        <?php $html = ob_get_clean() ?>
+
+        <div class="d-flex justify-content-between align-items-center my-3">
+            <div>
+                <?= l('global.plan_settings.notification_handlers_limit') ?>
+                <span class="ml-1" data-toggle="tooltip" data-html="true" title="<?= $html ?>"><i class="fas fa-fw fa-xs fa-circle-question text-gray-500"></i></span>
+            </div>
+
+            <i class="fas fa-fw fa-sm <?= $notification_handlers_icon ?>"></i>
+        </div>
+        <?php endif ?>
+
+        <?php if(\Altum\Plugin::is_active('affiliate') && settings()->affiliate->is_enabled): ?>
+            <li>
+                <div><?= sprintf(l('global.plan_settings.affiliate_commission_percentage'), nr($data->plan_settings->affiliate_commission_percentage) . '%') ?></div>
+                <i class="fas fa-fw fa-sm <?= $data->plan_settings->affiliate_commission_percentage ? 'fa-check-circle text-success' : 'fa-times-circle text-muted' ?>"></i>
+            </li>
+        <?php endif ?>
+
+        <?php if(settings()->links->biolinks_is_enabled || settings()->links->shortener_is_enabled || settings()->links->files_is_enabled || settings()->links->vcards_is_enabled || settings()->links->events_is_enabled || settings()->links->static_is_enabled): ?>
+        <li>
+            <div data-toggle="tooltip" title="<?= ($data->plan_settings->track_links_retention == -1 ? '' : $data->plan_settings->track_links_retention . ' ' . l('global.date.days')) ?>"><?= sprintf(l('global.plan_settings.track_links_retention'), ($data->plan_settings->track_links_retention == -1 ? l('global.unlimited') : \Altum\Date::days_format($data->plan_settings->track_links_retention))) ?></div>
+            <i class="fas fa-fw fa-sm <?= $data->plan_settings->track_links_retention ? 'fa-check-circle text-success' : 'fa-times-circle text-muted' ?>"></i>
+        </li>
+        <?php endif ?>
+
+        <?php if(settings()->links->email_reports_is_enabled): ?>
+            <li class="pricing-feature d-flex justify-content-between align-items-center">
+                <div><?= settings()->links->email_reports_is_enabled ? l('global.plan_settings.email_reports_is_enabled_' . settings()->links->email_reports_is_enabled) : l('global.plan_settings.email_reports_is_enabled') ?></div>
+
+                <i class="fas fa-fw fa-sm <?= $data->plan_settings->email_reports_is_enabled ? 'fa-check text-success' : 'fa-times text-muted' ?>"></i>
+            </li>
+        <?php endif ?>
+
+        <?php if(settings()->links->additional_domains_is_enabled): ?>
+            <li>
+                <div>
+                    <?= sprintf(l('global.plan_settings.additional_domains'), '<strong>' . nr(count($data->plan_settings->additional_domains ?? [])) . '</strong>') ?>
+
+                    <span class="mr-1" data-toggle="tooltip" title="<?= sprintf(l('global.plan_settings.additional_domains_help'), implode(', ', array_map(function($domain_id) use($additional_domains) { return $additional_domains[$domain_id]->host ?? null; }, $data->plan_settings->additional_domains ?? []))) ?>"><i class="fas fa-fw fa-xs fa-circle-question text-gray-500"></i></span>
+                </div>
+                <i class="fas fa-fw fa-sm <?= count($data->plan_settings->additional_domains ?? []) ? 'fa-check-circle text-success' : 'fa-times-circle text-muted' ?>"></i>
+            </li>
+        <?php endif ?>
 
     <?php if(
         \Altum\Plugin::is_active('aix')

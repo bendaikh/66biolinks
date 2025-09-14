@@ -1004,6 +1004,22 @@ input[type="radio"]:checked ~ .link-biolink-theme {
 	flex-direction: column;
 }
 
+.show-more-features {
+	transition: all 0.3s ease;
+	border-radius: 20px;
+	font-size: 0.85rem;
+	padding: 0.4rem 1rem;
+}
+
+.show-more-features:hover {
+	transform: translateY(-1px);
+	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.show-more-features i {
+	transition: transform 0.3s ease;
+}
+
 .pricing-header {
 	display: flex;
 	flex-direction: column;

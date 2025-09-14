@@ -387,6 +387,19 @@
 </div>
 <?php endif ?>
 
+<?php if(settings()->main->display_index_plans): ?>
+    <div class="py-3"></div>
+
+    <div id="plans" class="container mt-8">
+        <div class="text-center mb-5">
+            <h2><?= l('index.pricing.header') ?></h2>
+            <p class="text-muted"><?= l('index.pricing.subheader') ?></p>
+        </div>
+
+        <?= $this->views['plans'] ?>
+    </div>
+<?php endif ?>
+
 <div class="py-3"></div>
 
 <div class="container mt-8">
@@ -789,18 +802,6 @@
     </div>
 <?php endif ?>
 
-<?php if(settings()->main->display_index_plans): ?>
-    <div class="py-3"></div>
-
-    <div id="plans" class="container mt-8">
-        <div class="text-center mb-5">
-            <h2><?= l('index.pricing.header') ?></h2>
-            <p class="text-muted"><?= l('index.pricing.subheader') ?></p>
-        </div>
-
-        <?= $this->views['plans'] ?>
-    </div>
-<?php endif ?>
 
 <?php if(settings()->main->display_index_faq): ?>
     <div class="py-3"></div>
